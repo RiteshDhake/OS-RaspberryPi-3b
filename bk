@@ -1,0 +1,180 @@
+ENTRY(_start)
+SECTIONS
+{
+    /* Place the startup code (in .init) at 0x80000 */
+    .init 0x80000 : {
+         KEEP(*(.init))
+    }
+    .text : {
+         *(.text*)
+    }
+    .rodata : {
+         *(.rodata*)
+    }
+    .data : {
+         *(.data*)
+    }
+    .bss : {
+         *(.bss*)
+    }
+}
+
+
+    .arch armv8-a
+
+    /* Place startup code and vector table in the .init section */
+    .section .init, "ax", %progbits
+    .global _start
+    .type _start, %function
+_start:
+    /* Set up the stack pointer using _stack_top */
+    ldr x0, =_stack_top
+    mov sp, x0
+
+    /* Install the vector table by loading its address into VBAR_EL1 */
+    ldr x0, =vector_table
+    msr VBAR_EL1, x0
+
+    /* Branch to the Rust entry point */
+    bl rust_main
+
+hang:
+    b hang
+
+    /* -------------------------------------------------
+       Exception Vector Table (aligned to 128 bytes)
+       ------------------------------------------------- */
+    .align 7
+vector_table:
+    /* EL1t: Exceptions taken using SP0 */
+    b default_exception      /* Synchronous Exception */
+    b irq_exception          /* IRQ Exception */
+    b default_exception      /* FIQ Exception */
+    b default_exception      /* SError Exception */
+
+    /* EL1h: Exceptions taken using SP_EL1 */
+    b default_exception      /* Synchronous Exception */
+    b irq_exception          /* IRQ Exception */
+    b default_exception      /* FIQ Exception */
+    b default_exception      /* SError Exception */
+
+    /* EL0 AArch64 exceptions */
+    b default_exception      /* Synchronous Exception */
+    b default_exception      /* IRQ Exception */
+    b default_exception      /* FIQ Exception */
+    b default_exception      /* SError Exception */
+
+    /* EL0 AArch32 exceptions (unused in a pure AArch64 kernel) */
+    b default_exception      /* Synchronous Exception */
+    b default_exception      /* IRQ Exception */
+    b default_exception      /* FIQ Exception */
+    b default_exception      /* SError Exception */
+
+default_exception:
+    b default_exception
+
+irq_exception:
+    /* Call the Rust IRQ handler and return via eret */
+    bl rust_irq_handler
+    eret
+
+    /* -------------------------------------------------
+       Reserve space for the stack.
+       Here we allocate 16 KB for the stack.
+       We export _stack_top so the linker and Rust code can reference it.
+       ------------------------------------------------- */
+    .align 16
+    .global _stack_top
+_stack_top:
+    .space 0x4000
+
+
+
+
+COrrect but doesnot work on QEMU  EL2 -> EL1
+    .arch armv8-a
+
+    /* Place startup code and vector table in the .init section */
+    .section .init, "ax", %progbits
+    .global _start
+    .type _start, %function
+_start:
+    /* Check current Exception Level */
+    mrs x1, CurrentEL         // Read current EL (in bits [3:2])
+    lsr x1, x1, #2           // Now x1 = EL number
+    cmp x1, #1
+    beq el1_already          // If already in EL1, skip the drop
+
+    /* If here, we're in EL2. Call a Rust function to print a message.
+       (Make sure rust_print_el2 is implemented in your Rust code.) */
+    bl rust_print_el2
+
+    /* Prepare to drop from EL2 to EL1 */
+    mov x2, #0x3C5           // SPSR_EL2: Set mode to EL1h (0b0101) and disable interrupts.
+    msr SPSR_EL2, x2
+    ldr x0, =rust_main       // Set entry point for EL1.
+    msr ELR_EL2, x0
+    eret                     // Return from exception to EL1
+    
+
+el1_already:
+    /* Set up the stack pointer using _stack_top */
+    ldr x0, =_stack_top
+    mov sp, x0
+
+    /* Install the vector table by loading its address into VBAR_EL1 */
+    ldr x0, =vector_table
+    msr VBAR_EL1, x0
+
+    /* Branch to the Rust entry point */
+    bl rust_main
+
+hang:
+    b hang
+
+    /* -------------------------------------------------
+       Exception Vector Table (aligned to 128 bytes)
+       ------------------------------------------------- */
+    .align 7
+vector_table:
+    /* EL1t: Exceptions taken using SP0 */
+    b default_exception      /* Synchronous Exception */
+    b irq_exception          /* IRQ Exception */
+    b default_exception      /* FIQ Exception */
+    b default_exception      /* SError Exception */
+
+    /* EL1h: Exceptions taken using SP_EL1 */
+    b default_exception      /* Synchronous Exception */
+    b irq_exception          /* IRQ Exception */
+    b default_exception      /* FIQ Exception */
+    b default_exception      /* SError Exception */
+
+    /* EL0 AArch64 exceptions */
+    b default_exception      /* Synchronous Exception */
+    b default_exception      /* IRQ Exception */
+    b default_exception      /* FIQ Exception */
+    b default_exception      /* SError Exception */
+
+    /* EL0 AArch32 exceptions (unused in a pure AArch64 kernel) */
+    b default_exception      /* Synchronous Exception */
+    b default_exception      /* IRQ Exception */
+    b default_exception      /* FIQ Exception */
+    b default_exception      /* SError Exception */
+
+default_exception:
+    b default_exception
+
+irq_exception:
+    /* Call the Rust IRQ handler and return via eret */
+    bl rust_irq_handler
+    eret
+
+    /* -------------------------------------------------
+       Reserve space for the stack.
+       Here we allocate 16 KB for the stack.
+       We export _stack_top so the linker and Rust code can reference it.
+       ------------------------------------------------- */
+    .align 16
+    .global _stack_top
+_stack_top:
+    .space 0x4000

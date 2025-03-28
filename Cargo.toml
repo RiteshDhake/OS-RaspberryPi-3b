@@ -1,0 +1,16 @@
+[package]
+name = "rpi3-baremetal"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[dependencies]
+panic-abort = "0.3"
+
+
+[profile.release]
+codegen-units = 1
+lto = true
+
+[build-dependencies]
+cc = "1.0"
