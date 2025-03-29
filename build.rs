@@ -4,6 +4,6 @@ fn main() {
         .target("aarch64-unknown-none")
         .file("vector.S")
         .flag("-march=armv8-a")
-        .compile("vector");
-    
+        .compiler("aarch64-linux-gnu-gcc")
+        .compile("vectors");
 }
