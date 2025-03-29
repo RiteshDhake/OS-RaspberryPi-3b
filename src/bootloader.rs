@@ -1,7 +1,6 @@
 // In src/bootloader.rs or at the top of main.rs
-use core::arch::asm;
-use core::fmt::Write;
 use crate::uart::Uart;
+use core::fmt::Write;
 
 #[no_mangle]
 pub extern "C" fn rust_print_el2() {

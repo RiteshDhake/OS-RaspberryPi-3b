@@ -24,7 +24,7 @@ impl GPIO {
         unsafe {
             let mut val = ptr::read_volatile(reg_addr as *mut u32);
             val &= !(0b111 << shift);
-            val |= (0b001 << shift);
+            val |= 0b001 << shift;
             ptr::write_volatile(reg_addr as *mut u32, val);
         }
     }

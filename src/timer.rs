@@ -1,5 +1,4 @@
 use core::ptr;
-use core::arch::asm;
 use core::fmt::Write;
 use crate::uart::Uart;
 

@@ -22,7 +22,7 @@ pub fn run_selftest(){
 
 /// Task to test GPIO functionality: toggles a given pin and prints status.
 fn test_gpio() {
-    let mut uart = Uart;
+    let uart = Uart;
     uart::uart_send_string(b"[Selftest] Starting GPIO test on pin 16...\n");
     // For this test, we use GPIO pin 16.
     GPIO::set_output(16);
@@ -37,7 +37,7 @@ fn test_gpio() {
 /// Task to test timer interrupts.
 /// For example, it simply waits (yielding control) so that the IRQ handler can fire.
 fn test_interrupt() {
-    let mut uart = Uart;
+    let uart = Uart;
     uart::uart_send_string(b"[Selftest] Testing timer interrupts...\n");
     // Let the timer run and yield.
     for _ in 0..5_000_000 {

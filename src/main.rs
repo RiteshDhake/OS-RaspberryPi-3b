@@ -2,7 +2,6 @@
 #![no_main]
 #![feature(asm)]
 
-use core::arch::asm;
 use core::str;
 use core::fmt::Write;
 
@@ -20,7 +19,6 @@ mod hdmi;
 
 use uart::{uart_init, uart_send_string, uart_receive, Uart};
 use timer::{timer_init, interrupt_controller_init};
-use hdmi::init_hdmi;
 
 
 // Global command buffer.

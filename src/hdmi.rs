@@ -122,7 +122,6 @@
 
 //use core::ptr;
 use crate::mailbox::{mailbox_write, mailbox_read, MAILBOX_CHANNEL_PROP};
-use core::fmt::Write;
 use core::ptr::write_volatile;
 
 const TAG_SET_PHYS_WH: u32 = 0x00048003;
